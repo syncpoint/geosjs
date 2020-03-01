@@ -13,6 +13,8 @@ class Geometry : public Napi::ObjectWrap<Geometry> {
   ~Geometry();
   Napi::Value GetSRID(const Napi::CallbackInfo& info);
   void SetSRID(const Napi::CallbackInfo& info);
+  Napi::Value GetType(const Napi::CallbackInfo& info);
+  Napi::Value GetNumGeometries(const Napi::CallbackInfo& info);
   Napi::Value GetNumPoints(const Napi::CallbackInfo& info);
   Napi::Value GetPointN(const Napi::CallbackInfo& info);
   Napi::Value GetStartPoint(const Napi::CallbackInfo& info);

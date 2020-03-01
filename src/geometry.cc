@@ -9,6 +9,8 @@ Napi::Object Geometry::Init(Napi::Env env, Napi::Object exports) {
   Napi::Function func = DefineClass(env, "Geometry", {
     InstanceMethod("getSRID", &Geometry::GetSRID),
     InstanceMethod("setSRID", &Geometry::SetSRID),
+    InstanceMethod("getType", &Geometry::GetType),
+    InstanceMethod("getNumGeometries", &Geometry::GetNumGeometries),
     InstanceMethod("getNumPoints", &Geometry::GetNumPoints),
     InstanceMethod("getPointN", &Geometry::GetPointN),
     InstanceMethod("getStartPoint", &Geometry::GetStartPoint),
@@ -58,6 +60,23 @@ void Geometry::SetSRID(const Napi::CallbackInfo& info) {
   // TODO: check arguments
   int srid = info[0].As<Napi::Number>().Int32Value();
   GEOSSetSRID(this->geometry, srid);
+}
+
+
+/**
+ *
+ */
+Napi::Value Geometry::GetType(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  char *type = GEOSGeomType(this->geometry);
+  Napi::String value = Napi::String::New(env, type);
+  free(type);
+  return value;
+}
+
+Napi::Value Geometry::GetNumGeometries(const Napi::CallbackInfo& info) {
+  int num = GEOSGetNumGeometries(this->geometry);
+  return Napi::Number::New(info.Env(), num);
 }
 
 Napi::Value Geometry::GetNumPoints(const Napi::CallbackInfo& info) {

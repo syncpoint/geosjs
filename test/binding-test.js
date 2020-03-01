@@ -1,35 +1,261 @@
 const GEOS = require('bindings')('geos')
-const proj4 = require('proj4')
+const assert = require('assert')
 
-console.log('hello, GEOS!', GEOS)
+const assertStringProperty = object => name => function () {
+  assert(typeof object[name] === 'string')
+}
 
-// const wkt = 'POLYGON((15.698738 48.444298,15.70589 48.429229,15.720558 48.432961,15.710448 48.452544,15.695686 48.449683,15.698939 48.44423,15.698738 48.444298))'
-// const wkt = 'LINESTRING(21750919.79646498 6485547.365184952,21740521.73550156 6526347.184665985)'
-const wkt = 'LINESTRING(23.888 58.972208,23.933941 58.970967,23.980515 58.983724,24.006602 58.98393,24.031413 58.992193,24.1137 58.9987,24.136359 59.011236,24.174154 59.04703,24.196779 59.063867,24.24228 59.087827,24.263625 59.117059,24.324162 59.128151,24.356907 59.171403,24.400691 59.186689,24.431799 59.210515,24.443164 59.22187,24.50063 59.244182,24.532819 59.273914,24.576539 59.311751,24.627051 59.315672,24.666023 59.315774,24.700822 59.31209,24.755585 59.311662,24.782871 59.328937,24.840764 59.341947,24.873398 59.35329,24.874452 59.35329,24.96837 59.283886,24.988371 59.267739,25.023087 59.26881,25.068309 59.25641,25.085159 59.273098,25.159909 59.285952,25.261975 59.282558,25.340626 59.252766,25.406549 59.224578,25.482115 59.218934,25.573307 59.206728,25.640853 59.22527,25.675041 59.254175,25.75599 59.253744,25.840032 59.250002,25.840428 59.266692,25.873342 59.278333,25.958296 59.268048,25.965264 59.253465,25.99799 59.258068,26.045937 59.24316,26.078751 59.250438,26.187887 59.243576,26.232755 59.263632,26.276086 59.269152,26.308753 59.298454,26.310845 59.298428,26.320981 59.287562,26.371466 59.286513,26.408142 59.30821,26.536633 59.331559,26.620085 59.312262,26.624546 59.272348,26.654007 59.27198,26.67231 59.258827,26.686872 59.233322,26.719123 59.226445,26.773864 59.227881,26.787771 59.212072,26.92612 59.109928,26.966895 59.108248,26.972098 59.10763,27.009936 59.054799,27.018042 59.050362,27.079936 59.018663,27.081886 59.033212,27.144924 59.004688,27.181858 58.977143)'
+const assertIntegerProperty = object => name => function () {
+  assert(Number.isInteger(object[name]))
+}
 
-const geometry = GEOS.readWKT(wkt)
-geometry.setSRID(4326)
-console.log('numPoints', geometry.getNumPoints())
+const assertFunctionProperty = object => name => function () {
+  assert(typeof object[name] === 'function')
+}
 
-const proj = proj4('EPSG:4326', 'EPSG:3857')
-const buffer_3857 = geometry.transform((x, y) => proj.forward([x, y])).buffer(2000)
-const buffer_4326 = buffer_3857.transform((x, y) => proj.inverse([x, y]))
+describe('GEOS', function () {
+  const assertString = assertStringProperty(GEOS)
+  const assertInteger = assertIntegerProperty(GEOS)
+  const assertFunction = assertFunctionProperty(GEOS)
 
-buffer_3857.setSRID(3857)
-buffer_4326.setSRID(4326)
+  it('exports GEOS_JTS_PORT string propery', assertString('GEOS_JTS_PORT'))
+  it('exports GEOS_VERSION string propery', assertString('GEOS_VERSION'))
+  it('exports GEOS_CAPI_VERSION string propery', assertString('GEOS_CAPI_VERSION'))
+  it('exports GEOSBUF_CAP_ROUND integer propery', assertInteger('GEOSBUF_CAP_ROUND'))
+  it('exports GEOSBUF_CAP_FLAT integer propery', assertInteger('GEOSBUF_CAP_FLAT'))
+  it('exports GEOSBUF_CAP_SQUARE integer propery', assertInteger('GEOSBUF_CAP_SQUARE'))
+  it('exports GEOSBUF_JOIN_ROUND integer propery', assertInteger('GEOSBUF_JOIN_ROUND'))
+  it('exports GEOSBUF_JOIN_MITRE integer propery', assertInteger('GEOSBUF_JOIN_MITRE'))
+  it('exports GEOSBUF_JOIN_BEVEL integer propery', assertInteger('GEOSBUF_JOIN_BEVEL'))
+  it('exports readWKT function propery', assertFunction('readWKT'))
+  it('exports writeWKT function propery', assertFunction('writeWKT'))
+  it('exports createLineString function propery', assertFunction('createLineString'))
+  it('exports createPoint function propery', assertFunction('createPoint'))
+  it('exports createCollection function propery', assertFunction('createCollection'))
 
-// console.log('geom_3857', GEOS.writeWKT(buffer_3857))
-// console.log(GEOS.writeWKT(buffer_4326))
+  // https://www.ogc.org/standards/sfa
 
-;(() => {
-  console.log('creating geometries...')
-  for (let i = 0; i < 10; i++) {
-    GEOS.readWKT(wkt)
-  }
-})()
+  const wkt = [
+    'POINT (10 10)',
+    'LINESTRING (10 10, 20 20, 30 40)',
+    'POLYGON ((10 10, 10 20, 20 20, 20 15, 10 10))',
+    'POLYGON ((0 0, 0 20, 20 20, 20 0, 0 0), (5 5, 5 15, 15 15, 15 5, 5 5))',
+    'MULTIPOINT (0 0, 20 20, 60 60)',
+    'MULTILINESTRING ((10 10, 20 20, 30 40), (15 15, 25 25, 35 45))',
+    'MULTIPOLYGON (((0 0, 0 20, 20 20, 20 0, 0 0), (5 5, 5 15, 15 15, 15 5, 5 5)), ((30 30, 30 40, 40 40, 40 30, 30 30)))',
+    'GEOMETRYCOLLECTION (POINT (10 10), LINESTRING (10 10, 20 20, 30 40))'
+  ]
 
-console.log('forcing GC')
-global.gc()
+  const types = [
+    'Point',
+    'LineString',
+    'Polygon',
+    'Polygon',
+    'MultiPoint',
+    'MultiLineString',
+    'MultiPolygon',
+    'GeometryCollection'
+  ]
 
-setTimeout(() => console.log('exiting'), 2000)
+  describe('GEOS::readWKT()', function () {
+    it('translates any WKT into geometry', function () {
+      const actual = wkt.map(GEOS.readWKT).map(geometry => geometry.getType())
 
+      // TODO: Compare expected/actual WKT once (fixed) precision model is supported.
+      assert.deepEqual(actual, types)
+    })
+
+    it('throws on missing argument', function () {
+      assert.throws(() => GEOS.readWKT(), {
+        name: "Error",
+        message: "Missing argument: WKT"
+      })
+    })
+
+    it('throws on invalid argument', function () {
+      assert.throws(() => GEOS.readWKT(42), {
+        name: "TypeError",
+        message: "Invalid argument: WKT"
+      })
+    })
+
+    it('throws on WKT parse error', function () {
+      assert.throws(() => GEOS.readWKT('GARBAGE'), {
+        name: "Error",
+        message: "ParseException: Unknown type: 'GARBAGE'"
+      })
+    })
+  })
+
+
+  describe('GEOS::writeWKT()', function () {
+    it('translates any geometry into WKT', function() {
+      const actual = wkt
+        .map(GEOS.readWKT)
+        .map(geometry => GEOS.writeWKT(geometry))
+        .filter(wkt => typeof wkt === 'string')
+      assert.strictEqual(actual.length, wkt.length)
+    })
+
+    it('throws on missing argument', function () {
+      assert.throws(() => GEOS.writeWKT(), {
+        name: "Error",
+        message: "Missing argument: Geometry"
+      })
+    })
+
+    it('throws on invalid argument (Number)', function () {
+      assert.throws(() => GEOS.writeWKT(42), {
+        name: "TypeError",
+        message: "Invalid argument: Geometry"
+      })
+    })
+
+    it('throws on invalid argument (non-Geometry object)', function () {
+      // NOTE: thrown by ObjectWrap<Geometry>::Unwrap(...)
+      assert.throws(() => GEOS.writeWKT({}), {
+        name: "Error",
+        message: "Invalid argument"
+      })
+    })
+  })
+
+
+  describe('GEOS::createLineString()', function () {
+    it('constructs LineString from [Point]', function() {
+      const a = GEOS.createPoint(0, 0)
+      const b = GEOS.createPoint(10, 10)
+      const c = GEOS.createPoint(15, 10)
+      const lineString = GEOS.createLineString([a, b, c])
+      assert(lineString)
+      assert.strictEqual(lineString.getType(), 'LineString')
+      assert.strictEqual(lineString.getNumPoints(), 3)
+    })
+
+    it('throws on missing argument', function () {
+      assert.throws(() => GEOS.createLineString(), {
+        name: "Error",
+        message: "Missing argument: [Point]"
+      })
+    })
+
+    it('throws on invalid argument ([Point][0])', function () {
+      assert.throws(() => GEOS.createLineString([]), {
+        name: "Error",
+        message: "Invalid argument: [Point]"
+      })
+    })
+
+    it('throws on invalid argument ([Point][1])', function () {
+      assert.throws(() => GEOS.createLineString([GEOS.createPoint(0, 0)]), {
+        name: "Error",
+        message: "Invalid argument: [Point]"
+      })
+    })
+
+    it('throws on invalid argument ([non-Point])/1', function () {
+      assert.throws(() => GEOS.createLineString(['x', 'y']), {
+        name: "Error",
+        message: "Invalid argument"
+      })
+    })
+
+    it('throws on invalid argument ([non-Point])/2', function () {
+      const a = GEOS.createPoint(0, 0)
+      const b = GEOS.createPoint(10, 10)
+      const ab = GEOS.createLineString([a, b])
+      assert.throws(() => GEOS.createLineString([a, ab /* non-Point geometry */]), {
+        name: "TypeError",
+        message: "Invalid argument: [Point]"
+      })
+    })
+
+    it('throws on invalid argument ([non-Point])/3', function () {
+      const a = GEOS.createPoint(0, 0)
+      assert.throws(() => GEOS.createLineString([a, {} /* non-Point geometry */]), {
+        name: "Error",
+        message: "Invalid argument"
+      })
+    })
+
+    it('throws on invalid argument non-array', function () {
+      const a = GEOS.createPoint(0, 0)
+      const b = GEOS.createPoint(10, 10)
+      assert.throws(() => GEOS.createLineString(a, b), {
+        name: "Error",
+        message: "An array was expected"
+      })
+    })
+  })
+
+
+  describe('GEOS::createPoint()', function () {
+    it('constructs Point from x, y', function() {
+      const point = GEOS.createPoint(0, 0)
+      assert(point)
+      assert.strictEqual(point.getType(), 'Point')
+    })
+
+    it('throws on missing argument/1', function () {
+      assert.throws(() => GEOS.createPoint(), {
+        name: "Error",
+        message: "Missing argument(s): x, y"
+      })
+    })
+
+    it('throws on missing argument/2', function () {
+      assert.throws(() => GEOS.createPoint(0), {
+        name: "Error",
+        message: "Missing argument(s): x, y"
+      })
+    })
+
+    it('throws on invalid argument (x)', function () {
+      assert.throws(() => GEOS.createPoint('a', 0), {
+        name: "TypeError",
+        message: "Invalid argument: x"
+      })
+    })
+
+    it('throws on invalid argument (y)', function () {
+      assert.throws(() => GEOS.createPoint(0, 'a'), {
+        name: "TypeError",
+        message: "Invalid argument: y"
+      })
+    })
+  })
+
+
+  describe('GEOS::createCollection()', function () {
+    it('constructs Collection from [Geometry]', function() {
+      const a = GEOS.createPoint(0, 0)
+      const b = GEOS.createPoint(10, 10)
+      const lineString = GEOS.createLineString([a, b])
+
+      const collection = GEOS.createCollection([a, b, lineString])
+      assert.strictEqual(collection.getType(), 'GeometryCollection')
+      assert.strictEqual(collection.getNumGeometries(), 3)
+    })
+
+    it('throws on missing argument', function () {
+      assert.throws(() => GEOS.createCollection(), {
+        name: "Error",
+        message: "Missing argument: [Geometry]"
+      })
+    })
+
+    it('throws on invalid argument (non-array)', function () {
+      assert.throws(() => GEOS.createCollection(GEOS.createPoint(0, 0)), {
+        name: "Error",
+        message: "An array was expected"
+      })
+    })
+
+    it('throws on invalid argument (non-geometry)', function () {
+      assert.throws(() => GEOS.createCollection(['x']), {
+        name: "Error",
+        message: "Invalid argument"
+      })
+    })
+  })
+})
