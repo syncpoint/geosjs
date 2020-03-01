@@ -4,6 +4,8 @@
 #include <napi.h>
 #include <geos_c.h>
 
+typedef char (*predicate_t)(const GEOSGeometry*, const GEOSGeometry*);
+
 class Geometry : public Napi::ObjectWrap<Geometry> {
  public:
   GEOSGeometry *geometry;
@@ -32,8 +34,21 @@ class Geometry : public Napi::ObjectWrap<Geometry> {
   Napi::Value InterpolateNormalized(const Napi::CallbackInfo& info);
   Napi::Value Transform(const Napi::CallbackInfo& info);
 
+  // Predicates:
+  Napi::Value Disjoint(const Napi::CallbackInfo& info);
+  Napi::Value Touches(const Napi::CallbackInfo& info);
+  Napi::Value Intersects(const Napi::CallbackInfo& info);
+  Napi::Value Crosses(const Napi::CallbackInfo& info);
+  Napi::Value Within(const Napi::CallbackInfo& info);
+  Napi::Value Contains(const Napi::CallbackInfo& info);
+  Napi::Value Overlaps(const Napi::CallbackInfo& info);
+  Napi::Value Equals(const Napi::CallbackInfo& info);
+  Napi::Value Covers(const Napi::CallbackInfo& info);
+  Napi::Value CoveredBy(const Napi::CallbackInfo& info);
+
  private:
   static Napi::FunctionReference constructor;
+  Napi::Value PredicateTemplate(const Napi::CallbackInfo& info, predicate_t fn);
 };
 
 

@@ -18,20 +18,20 @@ describe('GEOS', function () {
   const assertInteger = assertIntegerProperty(GEOS)
   const assertFunction = assertFunctionProperty(GEOS)
 
-  it('exports GEOS_JTS_PORT string propery', assertString('GEOS_JTS_PORT'))
-  it('exports GEOS_VERSION string propery', assertString('GEOS_VERSION'))
-  it('exports GEOS_CAPI_VERSION string propery', assertString('GEOS_CAPI_VERSION'))
-  it('exports GEOSBUF_CAP_ROUND integer propery', assertInteger('GEOSBUF_CAP_ROUND'))
-  it('exports GEOSBUF_CAP_FLAT integer propery', assertInteger('GEOSBUF_CAP_FLAT'))
-  it('exports GEOSBUF_CAP_SQUARE integer propery', assertInteger('GEOSBUF_CAP_SQUARE'))
-  it('exports GEOSBUF_JOIN_ROUND integer propery', assertInteger('GEOSBUF_JOIN_ROUND'))
-  it('exports GEOSBUF_JOIN_MITRE integer propery', assertInteger('GEOSBUF_JOIN_MITRE'))
-  it('exports GEOSBUF_JOIN_BEVEL integer propery', assertInteger('GEOSBUF_JOIN_BEVEL'))
-  it('exports readWKT function propery', assertFunction('readWKT'))
-  it('exports writeWKT function propery', assertFunction('writeWKT'))
-  it('exports createLineString function propery', assertFunction('createLineString'))
-  it('exports createPoint function propery', assertFunction('createPoint'))
-  it('exports createCollection function propery', assertFunction('createCollection'))
+  it('exports GEOS_JTS_PORT string property', assertString('GEOS_JTS_PORT'))
+  it('exports GEOS_VERSION string property', assertString('GEOS_VERSION'))
+  it('exports GEOS_CAPI_VERSION string property', assertString('GEOS_CAPI_VERSION'))
+  it('exports GEOSBUF_CAP_ROUND integer property', assertInteger('GEOSBUF_CAP_ROUND'))
+  it('exports GEOSBUF_CAP_FLAT integer property', assertInteger('GEOSBUF_CAP_FLAT'))
+  it('exports GEOSBUF_CAP_SQUARE integer property', assertInteger('GEOSBUF_CAP_SQUARE'))
+  it('exports GEOSBUF_JOIN_ROUND integer property', assertInteger('GEOSBUF_JOIN_ROUND'))
+  it('exports GEOSBUF_JOIN_MITRE integer property', assertInteger('GEOSBUF_JOIN_MITRE'))
+  it('exports GEOSBUF_JOIN_BEVEL integer property', assertInteger('GEOSBUF_JOIN_BEVEL'))
+  it('exports readWKT function property', assertFunction('readWKT'))
+  it('exports writeWKT function property', assertFunction('writeWKT'))
+  it('exports createLineString function property', assertFunction('createLineString'))
+  it('exports createPoint function property', assertFunction('createPoint'))
+  it('exports createCollection function property', assertFunction('createCollection'))
 
   // https://www.ogc.org/standards/sfa
 
@@ -60,9 +60,9 @@ describe('GEOS', function () {
   describe('GEOS::readWKT()', function () {
     it('translates any WKT into geometry', function () {
       const actual = wkt.map(GEOS.readWKT).map(geometry => geometry.getType())
+      assert.deepEqual(actual, types)
 
       // TODO: Compare expected/actual WKT once (fixed) precision model is supported.
-      assert.deepEqual(actual, types)
     })
 
     it('throws on missing argument', function () {
