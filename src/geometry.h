@@ -23,7 +23,6 @@ class Geometry : public Napi::ObjectWrap<Geometry> {
   Napi::Value GetEndPoint(const Napi::CallbackInfo& info);
   Napi::Value GetX(const Napi::CallbackInfo& info);
   Napi::Value GetY(const Napi::CallbackInfo& info);
-  Napi::Value GetZ(const Napi::CallbackInfo& info);
   Napi::Value GetGeometryN(const Napi::CallbackInfo& info);
   Napi::Value Difference(const Napi::CallbackInfo& info);
   Napi::Value Union(const Napi::CallbackInfo& info);

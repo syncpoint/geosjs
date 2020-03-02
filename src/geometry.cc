@@ -17,7 +17,6 @@ Napi::Object Geometry::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("getEndPoint", &Geometry::GetEndPoint),
     InstanceMethod("getX", &Geometry::GetX),
     InstanceMethod("getY", &Geometry::GetY),
-    InstanceMethod("getZ", &Geometry::GetZ),
     InstanceMethod("getNumGeometries", &Geometry::GetNumGeometries),
     InstanceMethod("getGeometryN", &Geometry::GetGeometryN),
 
@@ -115,9 +114,10 @@ Napi::Value Geometry::GetNumPoints(const Napi::CallbackInfo& info) {
   return Napi::Number::New(info.Env(), num);
 }
 
+
 /**
- * Return n-th point, 0-based, negative indexes
- * are supported: -1: last point, -2 point before last, etc.
+ * Return copy of n-th point; 0-based;
+ * negative indexes are supported: -1: last point, -2 point before last, etc.
  * info[0] : int32 - n
  */
 Napi::Value Geometry::GetPointN(const Napi::CallbackInfo& info) {
@@ -133,12 +133,19 @@ Napi::Value Geometry::GetPointN(const Napi::CallbackInfo& info) {
     return env.Undefined();
   }
 
-  double n = info[0].As<Napi::Number>().Int32Value();
+  int n = info[0].As<Napi::Number>().Int32Value();
+  int num = GEOSGeomGetNumPoints(this->geometry);
+
+  if (num == -1) {
+    Napi::TypeError::New(env, "Unexpected geometry: expected LineString").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
 
   // support negative indexes:
-  if (n < 0) {
-    int num = GEOSGeomGetNumPoints(this->geometry);
-    n = num + n;
+  if (n < 0) n = num + n;
+  if (n >= num) {
+    Napi::Error::New(env, "Invalid range: n").ThrowAsJavaScriptException();
+    return env.Undefined();
   }
 
   GEOSGeometry *geometry = GEOSGeomGetPointN(this->geometry, n);
@@ -146,63 +153,110 @@ Napi::Value Geometry::GetPointN(const Napi::CallbackInfo& info) {
   return Geometry::NewInstance(env, external);
 }
 
+
+/**
+ *
+ */
 Napi::Value Geometry::GetStartPoint(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
-  Napi::EscapableHandleScope scope(env);
   GEOSGeometry *geometry = GEOSGeomGetStartPoint(this->geometry);
+
+  if (geometry == NULL) {
+    Napi::TypeError::New(env, "Unexpected geometry: expected LineString").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
+
   Napi::External<GEOSGeometry> external = Napi::External<GEOSGeometry>::New(env, geometry);
   return Geometry::NewInstance(env, external);
 }
 
+
+/**
+ *
+ */
 Napi::Value Geometry::GetEndPoint(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
-  Napi::EscapableHandleScope scope(env);
   GEOSGeometry *geometry = GEOSGeomGetEndPoint(this->geometry);
+
+  if (geometry == NULL) {
+    Napi::TypeError::New(env, "Unexpected geometry: expected LineString").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
+
   Napi::External<GEOSGeometry> external = Napi::External<GEOSGeometry>::New(env, geometry);
   return Geometry::NewInstance(env, external);
 }
 
+
+/**
+ *
+ */
 Napi::Value Geometry::GetX(const Napi::CallbackInfo& info) {
   double value;
   GEOSGeomGetX(this->geometry, &value);
   return Napi::Number::New(info.Env(), value);
 }
 
+
+/**
+ *
+ */
 Napi::Value Geometry::GetY(const Napi::CallbackInfo& info) {
   double value;
   GEOSGeomGetY(this->geometry, &value);
   return Napi::Number::New(info.Env(), value);
 }
 
-Napi::Value Geometry::GetZ(const Napi::CallbackInfo& info) {
-  double value;
-  GEOSGeomGetZ(this->geometry, &value);
-  return Napi::Number::New(info.Env(), value);
-}
 
+/**
+ *
+ */
 Napi::Value Geometry::GetNumGeometries(const Napi::CallbackInfo& info) {
   int num = GEOSGetNumGeometries(this->geometry);
   return Napi::Number::New(info.Env(), num);
 }
 
 
+/**
+ *
+ */
 Napi::Value Geometry::GetGeometryN(const Napi::CallbackInfo& info) {
-  // TODO: check argument(s)
   Napi::Env env = info.Env();
-  Napi::EscapableHandleScope scope(env);
 
-  int n = info[0].As<Napi::Number>().Int64Value();
-  // TODO: check bounds - int num = GEOSGetNumGeometries(this->geometry);
+  if (info.Length() < 1) {
+    Napi::Error::New(env, "Missing argument: n").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
+
+  if (!info[0].IsNumber()) {
+    Napi::TypeError::New(env, "Invalid argument: n").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
+
+  int n = info[0].As<Napi::Number>().Int32Value();
+  int num = GEOSGetNumGeometries(this->geometry);
+
+  if (n >= num) {
+    Napi::Error::New(env, "Invalid range: n").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
 
   GEOSGeometry* geometry = GEOSGeom_clone(GEOSGetGeometryN(this->geometry, n));
   Napi::External<GEOSGeometry> external = Napi::External<GEOSGeometry>::New(env, geometry);
   return Geometry::NewInstance(env, external);
 }
 
+
+/**
+ *
+ */
 Napi::Value Geometry::Difference(const Napi::CallbackInfo& info) {
-  // TODO: check argument(s)
   Napi::Env env = info.Env();
-  Napi::EscapableHandleScope scope(env);
+
+  if (info.Length() < 1) {
+    Napi::Error::New(env, "Missing argument: geometry").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
 
   GEOSGeometry* g1 = this->geometry;
   GEOSGeometry* g2 = Napi::ObjectWrap<Geometry>::Unwrap(info[0].As<Napi::Object>())->geometry;
@@ -211,10 +265,17 @@ Napi::Value Geometry::Difference(const Napi::CallbackInfo& info) {
   return Geometry::NewInstance(env, external);
 }
 
+
+/**
+ *
+ */
 Napi::Value Geometry::Union(const Napi::CallbackInfo& info) {
-  // TODO: check argument(s)
   Napi::Env env = info.Env();
-  Napi::EscapableHandleScope scope(env);
+
+  if (info.Length() < 1) {
+    Napi::Error::New(env, "Missing argument: geometry").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
 
   GEOSGeometry* g1 = this->geometry;
   GEOSGeometry* g2 = Napi::ObjectWrap<Geometry>::Unwrap(info[0].As<Napi::Object>())->geometry;
@@ -223,15 +284,34 @@ Napi::Value Geometry::Union(const Napi::CallbackInfo& info) {
   return Geometry::NewInstance(env, external);
 }
 
+
+/**
+ *
+ */
 Napi::Value Geometry::Buffer(const Napi::CallbackInfo& info) {
-  // TODO: check argument(s)
   Napi::Env env = info.Env();
-  Napi::EscapableHandleScope scope(env);
+
+  if (info.Length() < 1) {
+    Napi::Error::New(env, "Missing argument: width").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
 
   double width = info[0].As<Napi::Number>().DoubleValue();
-  int quadsegs = info[1].As<Napi::Number>().Int64Value();
-  int endCapStyle = info[2].As<Napi::Number>().Int64Value();
-  int joinStyle = info[3].As<Napi::Number>().Int64Value();
+
+  int quadsegs = 16; // default
+  if (info.Length() > 1) {
+    quadsegs = info[1].As<Napi::Number>().Int32Value();
+  }
+
+  int endCapStyle = GEOSBUF_CAP_ROUND; // default
+  if (info.Length() > 2) {
+    endCapStyle = info[2].As<Napi::Number>().Int32Value();
+  }
+
+  int joinStyle = GEOSBUF_JOIN_ROUND; // default
+  if (info.Length() > 3) {
+    joinStyle = info[3].As<Napi::Number>().Int32Value();
+  }
 
   GEOSGeometry *geometry = GEOSBufferWithStyle(
     this->geometry,
@@ -239,25 +319,34 @@ Napi::Value Geometry::Buffer(const Napi::CallbackInfo& info) {
     quadsegs,
     endCapStyle,
     joinStyle,
-    0.0
+    0.0 // TODO: support mitre limit
   );
 
   Napi::External<GEOSGeometry> external = Napi::External<GEOSGeometry>::New(env, geometry);
   return Geometry::NewInstance(env, external);
 }
 
+
+/**
+ * Convert closed LineString to Polygon.
+ */
 Napi::Value Geometry::AsPolygon(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
-  Napi::EscapableHandleScope scope(env);
 
-  GEOSGeometry* shell = GEOSGeom_createLinearRing(GEOSCoordSeq_clone(GEOSGeom_getCoordSeq(this->geometry)));
+  GEOSCoordSequence* cs = GEOSCoordSeq_clone(GEOSGeom_getCoordSeq(this->geometry));
+  GEOSGeometry* shell = GEOSGeom_createLinearRing(cs);
   GEOSGeometry** holes = NULL;
   unsigned int nholes = 0;
+
   GEOSGeometry* geometry = GEOSGeom_createPolygon(shell, holes, nholes);
   Napi::External<GEOSGeometry> external = Napi::External<GEOSGeometry>::New(env, geometry);
   return Geometry::NewInstance(env, external);
 }
 
+
+/**
+ *
+ */
 Napi::Value Geometry::AsBoundary(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   Napi::EscapableHandleScope scope(env);
@@ -267,10 +356,21 @@ Napi::Value Geometry::AsBoundary(const Napi::CallbackInfo& info) {
 }
 
 
+/**
+ *
+ */
 Napi::Value Geometry::Interpolate(const Napi::CallbackInfo& info) {
-  // TODO: check argument(s)
   Napi::Env env = info.Env();
-  Napi::EscapableHandleScope scope(env);
+
+  if (info.Length() < 1) {
+    Napi::Error::New(env, "Missing argument: d").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
+
+  if (!info[0].IsNumber()) {
+    Napi::TypeError::New(env, "Invalid argument: d").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
 
   double d = info[0].As<Napi::Number>().DoubleValue();
   GEOSGeometry *geometry = GEOSInterpolate(this->geometry, d);
@@ -278,10 +378,22 @@ Napi::Value Geometry::Interpolate(const Napi::CallbackInfo& info) {
   return Geometry::NewInstance(env, external);
 }
 
+
+/**
+ *
+ */
 Napi::Value Geometry::InterpolateNormalized(const Napi::CallbackInfo& info) {
-  // TODO: check argument(s)
   Napi::Env env = info.Env();
-  Napi::EscapableHandleScope scope(env);
+
+  if (info.Length() < 1) {
+    Napi::Error::New(env, "Missing argument: d").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
+
+  if (!info[0].IsNumber()) {
+    Napi::TypeError::New(env, "Invalid argument: d").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
 
   double d = info[0].As<Napi::Number>().DoubleValue();
   GEOSGeometry *geometry = GEOSInterpolateNormalized(this->geometry, d);
@@ -289,10 +401,23 @@ Napi::Value Geometry::InterpolateNormalized(const Napi::CallbackInfo& info) {
   return Geometry::NewInstance(env, external);
 }
 
-Napi::Value Geometry::Transform(const Napi::CallbackInfo& info) {
-  // TODO: check argument(s)
 
+/**
+ *
+ */
+Napi::Value Geometry::Transform(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
+
+  if (info.Length() < 1) {
+    Napi::Error::New(env, "Missing argument: fn").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
+
+  if (!info[0].IsFunction()) {
+    Napi::TypeError::New(env, "Invalid argument: fn").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
+
   Napi::Function fn = info[0].As<Napi::Function>();
 
   GEOSGeometry *geometry = TransformGeom(env, fn, this->geometry);
@@ -300,7 +425,8 @@ Napi::Value Geometry::Transform(const Napi::CallbackInfo& info) {
   return Geometry::NewInstance(env, external);
 }
 
-  // Predicates:
+
+// Predicates:
 
 Napi::Value Geometry::PredicateTemplate(const Napi::CallbackInfo& info, predicate_t fn) {
   Napi::Env env = info.Env();

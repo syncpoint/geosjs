@@ -48,7 +48,7 @@ const G_G_OLAGM = (wkt, width) => {
 
   const BUFFER = geometry
     .transform((x, y) => proj.forward([x, y]))
-    .buffer(halfWidth, 16, GEOS.GEOSBUF_CAP_FLAT, GEOS.GEOSBUF_JOIN_ROUND)
+    .buffer(halfWidth, 16, GEOS.CAP_FLAT, GEOS.JOIN_ROUND)
     .transform((x, y) => proj.inverse([x, y]))
 
   // TODO: directly create POLYGON not LINE_STRING
@@ -82,7 +82,7 @@ const G_G_OLAGS = (wkt, width) => {
 
   const BUFFER = geometry
     .transform((x, y) => proj.forward([x, y]))
-    .buffer(halfWidth, 16, GEOS.GEOSBUF_CAP_FLAT, GEOS.GEOSBUF_JOIN_ROUND)
+    .buffer(halfWidth, 16, GEOS.CAP_FLAT, GEOS.JOIN_ROUND)
     .transform((x, y) => proj.inverse([x, y]))
 
   const CUTOUT = GEOS.createLineString([
@@ -90,7 +90,7 @@ const G_G_OLAGS = (wkt, width) => {
     ST_Project(P_B, halfWidth, ALPHA + HALF_PI)
   ])
     .transform((x, y) => proj.forward([x, y]))
-    .buffer(halfWidth, 16, GEOS.GEOSBUF_CAP_SQUARE, GEOS.GEOSBUF_JOIN_ROUND)
+    .buffer(halfWidth, 16, GEOS.CAP_SQUARE, GEOS.JOIN_ROUND)
     .transform((x, y) => proj.inverse([x, y]))
 
   const ARROW = GEOS.createLineString([

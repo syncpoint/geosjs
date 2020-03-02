@@ -222,12 +222,12 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
   exports.Set("GEOS_VERSION", Napi::String::New(env, GEOS_VERSION));
   exports.Set("GEOS_CAPI_VERSION", Napi::String::New(env, GEOS_CAPI_VERSION));
 
-  exports.Set("GEOSBUF_CAP_ROUND", Napi::Number::New(env, GEOSBUF_CAP_ROUND));
-  exports.Set("GEOSBUF_CAP_FLAT", Napi::Number::New(env, GEOSBUF_CAP_FLAT));
-  exports.Set("GEOSBUF_CAP_SQUARE", Napi::Number::New(env, GEOSBUF_CAP_SQUARE));
-  exports.Set("GEOSBUF_JOIN_ROUND", Napi::Number::New(env, GEOSBUF_JOIN_ROUND));
-  exports.Set("GEOSBUF_JOIN_MITRE", Napi::Number::New(env, GEOSBUF_JOIN_MITRE));
-  exports.Set("GEOSBUF_JOIN_BEVEL", Napi::Number::New(env, GEOSBUF_JOIN_BEVEL));
+  exports.Set("CAP_ROUND", Napi::Number::New(env, GEOSBUF_CAP_ROUND));
+  exports.Set("CAP_FLAT",  Napi::Number::New(env, GEOSBUF_CAP_FLAT));
+  exports.Set("CAP_SQUARE", Napi::Number::New(env, GEOSBUF_CAP_SQUARE));
+  exports.Set("JOIN_ROUND", Napi::Number::New(env, GEOSBUF_JOIN_ROUND));
+  exports.Set("JOIN_MITRE", Napi::Number::New(env, GEOSBUF_JOIN_MITRE));
+  exports.Set("JOIN_BEVEL", Napi::Number::New(env, GEOSBUF_JOIN_BEVEL));
 
   exports.Set("readWKT", Napi::Function::New(env, ReadWKT));
   exports.Set("writeWKT", Napi::Function::New(env, WriteWKT));
