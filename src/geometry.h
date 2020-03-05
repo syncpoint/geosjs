@@ -28,6 +28,8 @@ class Geometry : public Napi::ObjectWrap<Geometry> {
   Napi::Value GetGeometryN(const Napi::CallbackInfo& info);
   Napi::Value Difference(const Napi::CallbackInfo& info);
   Napi::Value Union(const Napi::CallbackInfo& info);
+  Napi::Value Intersection(const Napi::CallbackInfo& info);
+  Napi::Value ConvexHull(const Napi::CallbackInfo& info);
   Napi::Value Buffer(const Napi::CallbackInfo& info);
   Napi::Value AsPolygon(const Napi::CallbackInfo& info);
   Napi::Value AsBoundary(const Napi::CallbackInfo& info);

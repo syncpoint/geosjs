@@ -22,6 +22,8 @@ Napi::Object Geometry::Init(Napi::Env env, Napi::Object exports) {
 
     InstanceMethod("difference", &Geometry::Difference),
     InstanceMethod("union", &Geometry::Union),
+    InstanceMethod("intersection", &Geometry::Intersection),
+    InstanceMethod("convexHull", &Geometry::ConvexHull),
     InstanceMethod("buffer", &Geometry::Buffer),
     InstanceMethod("asPolygon", &Geometry::AsPolygon),
     InstanceMethod("asBoundary", &Geometry::AsBoundary),
@@ -289,6 +291,35 @@ Napi::Value Geometry::Union(const Napi::CallbackInfo& info) {
   GEOSGeometry* g1 = this->geometry;
   GEOSGeometry* g2 = Napi::ObjectWrap<Geometry>::Unwrap(info[0].As<Napi::Object>())->geometry;
   GEOSGeometry* geometry = GEOSUnion(g1, g2);
+  Napi::External<GEOSGeometry> external = Napi::External<GEOSGeometry>::New(env, geometry);
+  return Geometry::NewInstance(env, external);
+}
+
+
+/**
+ *
+ */
+Napi::Value Geometry::Intersection(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+
+  if (info.Length() < 1) {
+    Napi::Error::New(env, "Missing argument: geometry").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
+
+  GEOSGeometry* g1 = this->geometry;
+  GEOSGeometry* g2 = Napi::ObjectWrap<Geometry>::Unwrap(info[0].As<Napi::Object>())->geometry;
+  GEOSGeometry* geometry = GEOSIntersection(g1, g2);
+  Napi::External<GEOSGeometry> external = Napi::External<GEOSGeometry>::New(env, geometry);
+  return Geometry::NewInstance(env, external);
+}
+
+/**
+ *
+ */
+Napi::Value Geometry::ConvexHull(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  GEOSGeometry* geometry = GEOSConvexHull(this->geometry);
   Napi::External<GEOSGeometry> external = Napi::External<GEOSGeometry>::New(env, geometry);
   return Geometry::NewInstance(env, external);
 }

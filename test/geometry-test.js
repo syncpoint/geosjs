@@ -109,6 +109,27 @@ describe('Geometry', function () {
     assertError('Invalid argument')(() => a.union('x'))
   })
 
+  it('::intersection()', function () {
+    const polygon = GEOS.readWKT('POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))')
+    const line = GEOS.readWKT('LINESTRING (0.5 -1, 0.5 2)')
+    const geometry = polygon.intersection(line)
+    const expected = GEOS.readWKT('LINESTRING (0.5 0, 0.5 1)')
+    assert(geometry.equals(expected))
+
+    assertError('Missing argument: geometry')(() => polygon.intersection())
+    assertError('Invalid argument')(() => polygon.intersection('x'))
+  })
+
+  it('::convexHull()', function () {
+    const a = GEOS.createPoint(0, 0)
+    const b = GEOS.createPoint(2, 2)
+    const c = GEOS.createPoint(2, -2)
+    const collection = GEOS.createCollection([a, b, c])
+    const hull = collection.convexHull()
+    const expected = GEOS.readWKT('POLYGON ((2 -2, 0 0, 2 2, 2 -2))')
+    assert(hull.equals(expected))
+  })
+
   it('::buffer()', function () {
     const a = GEOS.createPoint(0, 0)
     assert(a.buffer(10))
