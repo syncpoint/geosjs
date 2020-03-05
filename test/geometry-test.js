@@ -130,9 +130,28 @@ describe('Geometry', function () {
     assert.strictEqual(a.getType(), 'Polygon')
   })
 
+  it('::asValid()', function () {
+    // Invalid, i.e. self-intersecting polygon:
+    const invalid = GEOS.readWKT('POLYGON ((0 0, 0 1, 1 0, 1 1, 0 0))')
+    const valid = invalid.asValid()
+
+    // Should now be a valid geometry with two polygons:
+    assert.strictEqual(valid.isValid(), true)
+    assert.strictEqual(valid.getNumGeometries(), 2)
+  })
+
   // TODO: interpolate()
   // TODO: interpolateNormalized()
   // TODO: transform()
+
+  it('::isValid()', function () {
+    ;[
+      ['POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))', true], // valid
+      ['POLYGON ((0 0, 0 1, 1 0, 1 1, 0 0))', false] // invalid: self-intersecting
+    ].forEach(([wkt, expected]) => assert.strictEqual(GEOS.readWKT(wkt).isValid(), expected))
+  })
+
+  // TODO: remaining predicates
 
   describe('Geometry::getSRID()', function () {
     it('returns 0 when not set', function () {

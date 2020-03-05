@@ -4,7 +4,8 @@
 #include <napi.h>
 #include <geos_c.h>
 
-typedef char (*predicate_t)(const GEOSGeometry*, const GEOSGeometry*);
+typedef char (*predicate_t)(const GEOSGeometry*);
+typedef char (*unary_predicate_t)(const GEOSGeometry*, const GEOSGeometry*);
 
 class Geometry : public Napi::ObjectWrap<Geometry> {
  public:
@@ -13,6 +14,7 @@ class Geometry : public Napi::ObjectWrap<Geometry> {
   static Napi::Object NewInstance(Napi::Env env, Napi::External<GEOSGeometry> geometry);
   Geometry(const Napi::CallbackInfo& info);
   ~Geometry();
+
   Napi::Value GetSRID(const Napi::CallbackInfo& info);
   void SetSRID(const Napi::CallbackInfo& info);
   Napi::Value GetType(const Napi::CallbackInfo& info);
@@ -29,11 +31,21 @@ class Geometry : public Napi::ObjectWrap<Geometry> {
   Napi::Value Buffer(const Napi::CallbackInfo& info);
   Napi::Value AsPolygon(const Napi::CallbackInfo& info);
   Napi::Value AsBoundary(const Napi::CallbackInfo& info);
+  Napi::Value AsValid(const Napi::CallbackInfo& info);
   Napi::Value Interpolate(const Napi::CallbackInfo& info);
   Napi::Value InterpolateNormalized(const Napi::CallbackInfo& info);
   Napi::Value Transform(const Napi::CallbackInfo& info);
+  Napi::Value IsValid(const Napi::CallbackInfo& info);
 
   // Predicates:
+  Napi::Value IsEmpty(const Napi::CallbackInfo& info);
+  Napi::Value IsSimple(const Napi::CallbackInfo& info);
+  Napi::Value IsRing(const Napi::CallbackInfo& info);
+  Napi::Value HasZ(const Napi::CallbackInfo& info);
+  Napi::Value IsClosed(const Napi::CallbackInfo& info);
+
+
+  // Unary predicates:
   Napi::Value Disjoint(const Napi::CallbackInfo& info);
   Napi::Value Touches(const Napi::CallbackInfo& info);
   Napi::Value Intersects(const Napi::CallbackInfo& info);
@@ -48,6 +60,7 @@ class Geometry : public Napi::ObjectWrap<Geometry> {
  private:
   static Napi::FunctionReference constructor;
   Napi::Value PredicateTemplate(const Napi::CallbackInfo& info, predicate_t fn);
+  Napi::Value UnaryPredicateTemplate(const Napi::CallbackInfo& info, unary_predicate_t fn);
 };
 
 

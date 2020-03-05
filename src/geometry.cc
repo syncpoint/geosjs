@@ -25,11 +25,20 @@ Napi::Object Geometry::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("buffer", &Geometry::Buffer),
     InstanceMethod("asPolygon", &Geometry::AsPolygon),
     InstanceMethod("asBoundary", &Geometry::AsBoundary),
+    InstanceMethod("asValid", &Geometry::AsValid),
     InstanceMethod("interpolate", &Geometry::Interpolate),
     InstanceMethod("interpolateNormalized", &Geometry::InterpolateNormalized),
     InstanceMethod("transform", &Geometry::Transform),
 
     // Predicates:
+    InstanceMethod("isValid", &Geometry::IsValid),
+    InstanceMethod("isEmpty", &Geometry::IsEmpty),
+    InstanceMethod("isSimple", &Geometry::IsSimple),
+    InstanceMethod("isRing", &Geometry::IsRing),
+    InstanceMethod("hasZ", &Geometry::HasZ),
+    InstanceMethod("isClosed", &Geometry::IsClosed),
+
+    // Unary predicates:
     InstanceMethod("disjoint", &Geometry::Disjoint),
     InstanceMethod("touches", &Geometry::Touches),
     InstanceMethod("intersects", &Geometry::Intersects),
@@ -349,8 +358,18 @@ Napi::Value Geometry::AsPolygon(const Napi::CallbackInfo& info) {
  */
 Napi::Value Geometry::AsBoundary(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
-  Napi::EscapableHandleScope scope(env);
   GEOSGeometry* geometry = GEOSBoundary(this->geometry);
+  Napi::External<GEOSGeometry> external = Napi::External<GEOSGeometry>::New(env, geometry);
+  return Geometry::NewInstance(env, external);
+}
+
+
+/**
+ *
+ */
+Napi::Value Geometry::AsValid(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  GEOSGeometry* geometry = GEOSMakeValid(this->geometry);
   Napi::External<GEOSGeometry> external = Napi::External<GEOSGeometry>::New(env, geometry);
   return Geometry::NewInstance(env, external);
 }
@@ -425,10 +444,53 @@ Napi::Value Geometry::Transform(const Napi::CallbackInfo& info) {
   return Geometry::NewInstance(env, external);
 }
 
-
 // Predicates:
 
 Napi::Value Geometry::PredicateTemplate(const Napi::CallbackInfo& info, predicate_t fn) {
+  Napi::Env env = info.Env();
+
+  switch (fn(this->geometry)) {
+  case 0:
+    return Napi::Boolean::New(env, false);
+    break;
+  case 1:
+    return Napi::Boolean::New(env, true);
+    break;
+  default:
+    // TODO: throw last error
+    return env.Undefined();
+    break;
+  }
+}
+
+Napi::Value Geometry::IsValid(const Napi::CallbackInfo& info) {
+  return this->PredicateTemplate(info, &GEOSisValid);
+}
+
+Napi::Value Geometry::IsEmpty(const Napi::CallbackInfo& info) {
+  return this->PredicateTemplate(info, &GEOSisEmpty);
+}
+
+Napi::Value Geometry::IsSimple(const Napi::CallbackInfo& info) {
+  return this->PredicateTemplate(info, &GEOSisSimple);
+}
+
+Napi::Value Geometry::IsRing(const Napi::CallbackInfo& info) {
+  return this->PredicateTemplate(info, &GEOSisRing);
+}
+
+Napi::Value Geometry::HasZ(const Napi::CallbackInfo& info) {
+  return this->PredicateTemplate(info, &GEOSHasZ);
+}
+
+Napi::Value Geometry::IsClosed(const Napi::CallbackInfo& info) {
+  return this->PredicateTemplate(info, &GEOSisClosed);
+}
+
+
+// Unary predicates:
+
+Napi::Value Geometry::UnaryPredicateTemplate(const Napi::CallbackInfo& info, unary_predicate_t fn) {
   Napi::Env env = info.Env();
 
   if (info.Length() < 1) {
@@ -454,41 +516,41 @@ Napi::Value Geometry::PredicateTemplate(const Napi::CallbackInfo& info, predicat
 }
 
 Napi::Value Geometry::Disjoint(const Napi::CallbackInfo& info) {
-  return this->PredicateTemplate(info, &GEOSDisjoint);
+  return this->UnaryPredicateTemplate(info, &GEOSDisjoint);
 }
 
 Napi::Value Geometry::Touches(const Napi::CallbackInfo& info) {
-  return this->PredicateTemplate(info, &GEOSTouches);
+  return this->UnaryPredicateTemplate(info, &GEOSTouches);
 }
 
 Napi::Value Geometry::Intersects(const Napi::CallbackInfo& info) {
-  return this->PredicateTemplate(info, &GEOSIntersects);
+  return this->UnaryPredicateTemplate(info, &GEOSIntersects);
 }
 
 Napi::Value Geometry::Crosses(const Napi::CallbackInfo& info) {
-  return this->PredicateTemplate(info, &GEOSCrosses);
+  return this->UnaryPredicateTemplate(info, &GEOSCrosses);
 }
 
 Napi::Value Geometry::Within(const Napi::CallbackInfo& info) {
-  return this->PredicateTemplate(info, &GEOSWithin);
+  return this->UnaryPredicateTemplate(info, &GEOSWithin);
 }
 
 Napi::Value Geometry::Contains(const Napi::CallbackInfo& info) {
-  return this->PredicateTemplate(info, &GEOSContains);
+  return this->UnaryPredicateTemplate(info, &GEOSContains);
 }
 
 Napi::Value Geometry::Overlaps(const Napi::CallbackInfo& info) {
-  return this->PredicateTemplate(info, &GEOSOverlaps);
+  return this->UnaryPredicateTemplate(info, &GEOSOverlaps);
 }
 
 Napi::Value Geometry::Equals(const Napi::CallbackInfo& info) {
-  return this->PredicateTemplate(info, &GEOSEquals);
+  return this->UnaryPredicateTemplate(info, &GEOSEquals);
 }
 
 Napi::Value Geometry::Covers(const Napi::CallbackInfo& info) {
-  return this->PredicateTemplate(info, &GEOSCovers);
+  return this->UnaryPredicateTemplate(info, &GEOSCovers);
 }
 
 Napi::Value Geometry::CoveredBy(const Napi::CallbackInfo& info) {
-  return this->PredicateTemplate(info, &GEOSCoveredBy);
+  return this->UnaryPredicateTemplate(info, &GEOSCoveredBy);
 }
