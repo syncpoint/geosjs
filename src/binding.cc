@@ -2,6 +2,11 @@
 #include <geos_c.h>
 #include "geometry.h"
 
+#ifdef __GNUC__
+ #include <cstdarg>
+#endif
+
+
 char last_error[256];
 
 char* get_last_error() {
