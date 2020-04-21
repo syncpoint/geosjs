@@ -1,10 +1,12 @@
 {
   "name": "@syncpoint/geosjs",
-  "version": "0.0.1",
+  "version": "0.0.6",
   "description": "Node.js binding for GEOS C API",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "prebuild": "prebuildify -t 12.16.1 --napi --strip",
+    "install": "node-gyp-build"
   },
   "author": {
     "name": "Horst Dehmer",
@@ -14,7 +16,14 @@
   "dependencies": {
     "bindings": "^1.5.0",
     "mocha": "^7.0.1",
-    "node-addon-api": "^2.0.0"
-  },
-  "gypfile": true
+    "node-gyp-build": "^3.3.0"
+  } ,
+  "devDependencies": {
+    "standard": "^11.0.1",
+    "tape": "^4.9.0",
+    "node-addon-api": "^2.0.0",
+    "node-gyp": "^6.0.0",
+    "prebuildify": "^3.0.0",
+    "prebuildify-ci": "^1.0.4"
+  }
 }

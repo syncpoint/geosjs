@@ -2,10 +2,9 @@
 #include <geos_c.h>
 #include "geometry.h"
 
-#ifdef __GNUC__
+#if defined(__GNUC__)   || defined(_WIN64)
  #include <cstdarg>
 #endif
-
 
 char last_error[256];
 
