@@ -13,7 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "bindings": "^1.5.0",
-    "mocha": "^7.0.1",
+    "mocha": "^10.2.0",
     "node-addon-api": "^2.0.0"
   },
   "gypfile": true
