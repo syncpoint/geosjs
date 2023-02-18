@@ -1,4 +1,5 @@
 {
+  "id": "597db511-8d32-4c72-a210-8b0983b0e473",
   "name": "@syncpoint/geosjs",
   "version": "0.0.1",
   "description": "Node.js binding for GEOS C API",
